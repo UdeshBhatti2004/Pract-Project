@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
+import ClientProvider from "@/ClientProvider";
 
 export const metadata: Metadata = {
   title: "My Project",
@@ -8,13 +10,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body>
-        {children}
+        <ClientProvider>
+          {children}
+          <Toaster position="top-right" />
+        </ClientProvider>
       </body>
     </html>
   );
