@@ -4,9 +4,8 @@ import connectDb from "./db";
 import User from "@/model/user.model";
 import bcrypt from "bcryptjs";
 import GoogleProvider from "next-auth/providers/google";
-import { experimental_taintUniqueValue } from "react";
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "credentails",
@@ -72,10 +71,17 @@ const authOptions: NextAuthOptions = {
     },
 
     // Entering user detail in token
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         (token.id = user.id), (token.name = user.name);
         (token.email = user.email), (token.image = user.image);
+      }
+
+       
+      // updating user 
+      if (trigger === "update" && session) {
+        token.name = session.name;
+        token.image = session.image;
       }
 
       return token;
@@ -103,4 +109,3 @@ const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXT_AUTH_SECRET,
 };
-export default authOptions;

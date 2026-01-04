@@ -5,6 +5,7 @@ import Link from "next/link";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 function Register() {
 
@@ -12,6 +13,8 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  const router = useRouter()
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,9 +25,11 @@ function Register() {
         email,
         password
       });
-
+     
       toast.success("Account created successfully!");
       console.log(res);
+
+      router.push("/login")
 
     } catch (error: any) {
       if (error.response?.status === 409) {
