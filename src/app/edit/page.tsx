@@ -48,7 +48,7 @@ const { data: session, status, update } = useSession();
   try {
     let imageUrl = preview;
 
-     // uploadin images if user select new image 
+     // uploading images if user select new image 
 
     if (imageFile) {
       const formData = new FormData();
