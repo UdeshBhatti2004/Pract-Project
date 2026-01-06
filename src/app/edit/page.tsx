@@ -42,18 +42,32 @@ const { data: session, status, update } = useSession();
     setPreview(URL.createObjectURL(file));
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+ const handleSave = async (e: React.FormEvent) => {
   e.preventDefault();
 
   try {
-    const res = await axios.put("/api/user/update", {
+    let imageUrl = preview;
+
+     // uploadin images if user select new image 
+
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append("file", imageFile);
+
+      const uploadRes = await axios.post("/api/upload", formData);
+      imageUrl = uploadRes.data.url;
+    }
+
+     /// saving name and cloudinary images in the datbase
+    await axios.put("/api/user/update", {
       name,
-      image: preview, // image URL
+      image: imageUrl,
     });
 
+     // updating next-auth session
     await update({
       name,
-      image: preview,
+      image: imageUrl,
     });
 
     toast.success("Profile updated successfully");
@@ -61,10 +75,11 @@ const { data: session, status, update } = useSession();
 
   } catch (error: any) {
     toast.error(
-      error?.response?.data?.message || "Failed to update profile"
+      error?.response?.data?.message || "Profile update failed"
     );
   }
 };
+
 
 
   return (

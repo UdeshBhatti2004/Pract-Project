@@ -64,7 +64,10 @@ export const authOptions: NextAuthOptions = {
           });
         }
 
+        /// prefers db values
         user.id = existingUser._id.toString();
+        user.name = existingUser.name;
+        user.image = existingUser.image;
       }
 
       return true;
@@ -77,8 +80,7 @@ export const authOptions: NextAuthOptions = {
         (token.email = user.email), (token.image = user.image);
       }
 
-       
-      // updating user 
+      // updating user
       if (trigger === "update" && session) {
         token.name = session.name;
         token.image = session.image;
