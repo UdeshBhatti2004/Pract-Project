@@ -8,13 +8,14 @@ import toast from "react-hot-toast";
 import axios from "axios";
 
 export default function EditProfilePage() {
-const { data: session, status, update } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
 
   const [name, setName] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
 
+  
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -34,6 +35,7 @@ const { data: session, status, update } = useSession();
     );
   }
 
+  // Image change (preview only)
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -42,50 +44,54 @@ const { data: session, status, update } = useSession();
     setPreview(URL.createObjectURL(file));
   };
 
- const handleSave = async (e: React.FormEvent) => {
-  e.preventDefault();
+  
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  try {
-    let imageUrl = preview;
+    //  loading toast
+    const toastId = toast.loading("Saving profile...");
 
-     // uploading images if user select new image 
+    try {
+      let imageUrl = preview;
 
-    if (imageFile) {
-      const formData = new FormData();
-      formData.append("file", imageFile);
+      // Upload image if changed
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append("file", imageFile);
 
-      const uploadRes = await axios.post("/api/upload", formData);
-      imageUrl = uploadRes.data.url;
+        const uploadRes = await axios.post("/api/upload", formData);
+        imageUrl = uploadRes.data.url;
+      }
+
+      // Update database
+      await axios.put("/api/user/update", {
+        name,
+        image: imageUrl,
+      });
+
+      // Update NextAuth session
+      await update({
+        name,
+        image: imageUrl,
+      });
+
+      /// success toast (replace loading)
+      toast.success("Profile updated successfully", { id: toastId });
+
+      router.push("/");
+    } catch (error: any) {
+      /// error toast (replace loading)
+      toast.error(
+        error?.response?.data?.message || "Profile update failed",
+        { id: toastId }
+      );
     }
-
-     /// saving name and cloudinary images in the datbase
-    await axios.put("/api/user/update", {
-      name,
-      image: imageUrl,
-    });
-
-     // updating next-auth session
-    await update({
-      name,
-      image: imageUrl,
-    });
-
-    toast.success("Profile updated successfully");
-    router.push("/");
-
-  } catch (error: any) {
-    toast.error(
-      error?.response?.data?.message || "Profile update failed"
-    );
-  }
-};
-
-
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-10">
       <div className="max-w-2xl mx-auto">
-
+        
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-semibold text-gray-900">
             Edit Profile
@@ -94,19 +100,19 @@ const { data: session, status, update } = useSession();
           <button
             onClick={() => router.push("/")}
             className="
-              group relative inline-flex items-center gap-2
+              group inline-flex items-center gap-2
               px-5 py-2.5 rounded-xl
               bg-white border border-gray-200
               shadow-sm text-sm font-medium text-gray-700
               hover:bg-gray-50 hover:shadow-md
-              transition-all duration-200
+              transition-all
             "
           >
             <span
               className="
                 flex items-center justify-center
                 w-8 h-8 rounded-full
-                bg-gray-100 text-gray-700
+                bg-gray-100
                 group-hover:bg-indigo-100
                 group-hover:text-indigo-600
                 transition
@@ -118,8 +124,9 @@ const { data: session, status, update } = useSession();
           </button>
         </div>
 
+        
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-
+          
           <div className="flex items-center gap-6 mb-6">
             <label className="relative cursor-pointer group">
               <Image
@@ -150,12 +157,10 @@ const { data: session, status, update } = useSession();
             </div>
           </div>
 
+          
           <form onSubmit={handleSave} className="space-y-5">
-
             <div>
-              <label className="text-xs text-gray-600">
-                Full Name
-              </label>
+              <label className="text-xs text-gray-600">Full Name</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -191,7 +196,6 @@ const { data: session, status, update } = useSession();
                 Cancel
               </button>
             </div>
-
           </form>
         </div>
       </div>
